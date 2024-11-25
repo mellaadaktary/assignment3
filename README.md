@@ -139,6 +139,91 @@ How will you verify that the timer is active and the service runs successfully? 
 
 Important: Once both of these are done we will need to run `sudo systemctl daemon-reload` , this command makes the system aware of the changes 
 # Task3
+1. For this task we need to edit the main `nginx.conf` file to ensure the server runs as the `webgen` user
+2. create a separate server block that configures Nginx to server `index.html` on port 80
+
+To edit the main `nginx.conf` file we need to got to `/etc/nginx` once in this directory run sudo with nvim and edit the file called `nginx.conf`.
+
+change the user at the top to webgen since that is the user we want running this server
+```bash
+User webgen;  <----- change this
+worker_processes 1;
+
+#error_log logs/error.log;
+```
+save and quit the file
+
+we can create the separate server block file that configures Nginx. make two directories `/etc/nginx/sites-available` and `/etc/nginx/sites-enabled` 
+
+Create a file inside `sites-available`.
+`/etc/nginx/sites-available/example.conf`
+```bash
+server {
+        listen 80;
+        listen [::]:80;
+
+        server_name 159.223.194.99;
+
+        root /var/lib/webgen/HTML;
+        index index.html;
+
+        location / {
+        try_files $uri $uri/ =404;
+        }
+}
+```
+save and quit
+
+This is what the seperate server block looks for this nginx server, The important components of this include:
+1. listen 80 : which is the port
+2. `listen [::]:80;` indicates ipv6 and the port for http which is 80
+3. `root /var/lib/webgen/HTML;` the place being searched for the file specified in the next line `index index.html`
+4. `location /` what happens when the user requests the project root
+5. the rest is just error checking
+
+Go to the `nginx.conf` file again and append `include sites-enabled/*` at the end of the `http` block like so:
+```bash
+http {
+    include       mime.types;
+
+    default_type  application/octet-stream;
+
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+    #access_log  logs/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    #gzip  on;
+    include sites-enabled/*; <-------
+```
+save and quit
+
+To enable the site we need to simply create a symlink:
+```bash
+ln -s /etc/nginx/sites-available/example.conf /etc/nginx/sites-enabled/example.conf
+```
+after this is done we can run `sudo nginx -t` to test the configuration file and references inside it.
+
+the command is successful if you something like this:
+```bash
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+```
+
+Finally we need to restart nginx.service to enable everything:
+
+```bash
+sudo systemctl restart nginx.service
+```
+
+Now everything should be running smoothly.
 
 Why is it important to use a seperate server block file instead of modifying the main `nginx.conf` file directly?
 
