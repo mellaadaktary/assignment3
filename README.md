@@ -56,8 +56,7 @@ The final step would be to give ownership of all webgen files and directories to
 chown -R webgen:webgen webgen/
 ```
 
-we are creating and using systems users in this step because of security  
-What is the benefit of creating a system user for this task rather than using a regular user or root?
+we are creating and using systems users in this step because of security reasons, also system users are made for being assigned to system resources while regular users are made for people behind a computer 
 
 # Task2
 
@@ -135,7 +134,11 @@ sudo systemctl enable --now generate_index.timer
 
 This will activate the timer file and make it so that it starts from the beginning
 
-How will you verify that the timer is active and the service runs successfully? What commands can you run to check logs and to confirm the service's execution
+To check the status of your timer or service run the following command:
+```bash
+sudo systemctl status generate_index.<timer or service>
+```
+
 
 Important: Once both of these are done we will need to run `sudo systemctl daemon-reload` , this command makes the system aware of the changes 
 # Task3
@@ -209,7 +212,8 @@ To enable the site we need to simply create a symlink:
 ```bash
 ln -s /etc/nginx/sites-available/example.conf /etc/nginx/sites-enabled/example.conf
 ```
-after this is done we can run `sudo nginx -t` to test the configuration file and references inside it.
+
+after this is done we can run **`sudo nginx -t`** to test the configuration file and references inside it.
 
 the command is successful if you something like this:
 ```bash
@@ -227,11 +231,55 @@ Now everything should be running smoothly.
 
 Why is it important to use a seperate server block file instead of modifying the main `nginx.conf` file directly?
 
-How can you check the status of the nginx services and test your nginx configuration?
 # Task4
+For this task we are going to configure and set up the `ufw` firewall 
+we need to allow ssh connections and set a connection limit
 
-How can you check the status of your firewall?
+First we have to install `ufw`
+```bash
+sudo pacman -S ufw
+```
 
+now that its installed we need to make sure THE SERVICE IS RUNNING NOT THE FIREWALL ITSELF.
+
+to start the service and enable it we can run the following commands 
+```bash
+sudo systemctl start ufw.service
+```
+
+once this is successful we can run 
+```bash
+sudo systemctl enable ufw.service
+```
+
+to check that everything has been sucessful run 
+```bash
+sudo ufw status verbose
+```
+this command lets you see the status of the firewall, which in this case should be inactive 
+
+WARNING: DO NOT ENABLE FIREWALL WITHOUT SSH ACCESS
+
+now make sure you have permission to get past your firewall
+```bash
+sudo ufw allow SSH
+```
+and just for good caution also run 
+```bash
+sudo ufw allow 22
+```
+To limit ssh connections and spam we can run 
+```bash
+sudo ufw limit ssh
+```
+
+to make sure your have access run `sudo ufw status verbose` again and you should see a table with users who are allowed to get past the firewall.
+
+now we can start the firewall:
+```bash
+sudo ufw enable
+```
+if everything has gone according to plan you should not lose access to your droplet and have access to everything still.
 
 # Task5
 
@@ -241,3 +289,12 @@ How can you check the status of your firewall?
 
 
 # References:
+1. https://documentation.suse.com/smart/systems-management/html/systemd-working-with-timers/index.html 
+2. https://man.archlinux.org/man/systemd-analyze.1
+3. https://wiki.archlinux.org/title/Nginx
+4. https://wiki.archlinux.org/title/Uncomplicated_Firewall
+5. https://www.geeksforgeeks.org/how-to-run-nginx-for-root-non-root/
+6. https://serverfault.com/questions/812584/in-systemd-whats-the-difference-between-after-and-requires
+7. https://stackoverflow.com/questions/21983554/iptables-v1-4-14-cant-initialize-iptables-table-nat-table-does-not-exist-d
+8. https://stackoverflow.com/questions/14972792/nginx-nginx-emerg-bind-to-80-failed-98-address-already-in-use
+9. https://wiki.archlinux.org/title/Systemd/Timers
