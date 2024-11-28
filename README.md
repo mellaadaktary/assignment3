@@ -64,7 +64,7 @@ For this task we will need to create two files:
 1. generate_index.service
 2. generate_index.timer
 
-you would need to move both of them to `/etc/systemd/systems` because that's where custom unit files go
+you would need to move both of them to `/etc/systemd/system` because that's where custom unit files go
 
 we will first make the generate_index.service file. Inside this generate_index.service file we need to include the following components
 ```bash
@@ -91,6 +91,8 @@ To check that the script is good run:
 systemd-analyze verify generate_index.service
 ```
 if this returns nothing then it means that you are good
+
+always run `sudo systemctl daemon-reload `when you make changes to your service file or timer file, since it lets the system know that changes of been made and to reload.
 
 we want to make sure our script works so we will run:
 ```bash
@@ -126,6 +128,8 @@ This timer file will control our service file made previously. Once everything l
 systemd-analyze verify generate_index.timer
 ```
 
+reminder: `sudo systemctl daemon-reload`
+
 We want this timer to start and be enabled so we will run this command
 
 ```bash
@@ -140,7 +144,6 @@ sudo systemctl status generate_index.<timer or service>
 ```
 
 
-Important: Once both of these are done we will need to run `sudo systemctl daemon-reload` , this command makes the system aware of the changes 
 # Task3
 1. For this task we need to edit the main `nginx.conf` file to ensure the server runs as the `webgen` user
 2. create a separate server block that configures Nginx to server `index.html` on port 80
@@ -229,9 +232,8 @@ sudo systemctl restart nginx.service
 
 Now everything should be running smoothly.
 
-Why is it important to use a seperate server block file instead of modifying the main `nginx.conf` file directly?
-
 # Task4
+
 For this task we are going to configure and set up the `ufw` firewall 
 we need to allow ssh connections and set a connection limit
 
@@ -286,7 +288,7 @@ if everything has gone according to plan you should not lose access to your drop
 ![something](./views/something.png)
 
 
-
+success!
 
 # References:
 1. https://documentation.suse.com/smart/systems-management/html/systemd-working-with-timers/index.html 
